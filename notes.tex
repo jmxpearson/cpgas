@@ -1,0 +1,53 @@
+\documentclass[11pt]{article}
+\usepackage{amssymb,amsmath}
+
+\begin{document}
+\title{Changepoint gas}
+\author{John Pearson}
+\maketitle
+
+\section{Problem}
+We would like to perform rapid inference for discrete latent variables in long time series. For Hidden Markov Models, forward-backward inference is $\mathcal{O}(TM^2)$ with $M$ the number of latent states and $T$ the time. However, for hidden semi-Markov models, the run time is $\mathcal{O}(TM^2 D)$ with $D$ the maximum duration of a state.
+
+However, in many cases where semi-Markov models would naturally be applied, transitions are sparse, and posteriors for the state variables approximately alternate between periods of high posterior certainty punctuated by uncertain transition regions of disparate length scales.
+
+\section{Posterior Approximation}
+For the case of variational inference over binary latent variables $z(t)$, we will switch from a representation in terms of states to a representation in terms of changepoints $c_j$. That is, for a given index $j$ representing a transition $0 \rightarrow 1$, we will have $z(t < c_j) = 0$ and $z(t \ge c_j) = 1$. Thus, $z(t)$ and $c_j$ are equivalent descriptions of the model, linked deterministically, and $\mathcal{H}[q(z)] = \mathcal{H}[q(c)]$, where $\mathcal{H}$ is the entropy of the distribution.
+
+As a first approximation, then, we will use a mean field approximation for the changepoint locations
+\begin{equation}
+    q(c) = \prod_{j = 1}^N \mathcal{N}(\mu_j, \sigma^2_j)
+\end{equation}
+for which we can easily calculate
+\begin{equation}
+    \mathcal{H}[q(c)] = \frac{N}{2}(\log 2\pi + 1) + \sum_j \log \sigma_j
+\end{equation}
+Clearly, entropy scales with the number of changepoints, and the uncertainty of the changepoint locations. Note also that we have assumed a fixed number of changepoints, $N$, which, like $\mu$ and $\sigma$ should be thought of as a variational parameter to be optimized.\footnote{Of course, with variational inference, which maximizes the sum of the expected log evidence and the entropy, both terms should benefit from $N$ larger. Thus, constraining $N$ will rely on the prior over changepoints, which should also appropriately scale with $N$.}
+
+\section{Example: Poisson firing}
+Here, we consider the example of a Poisson process driven by such a binary latent state. That is, we observe in successive time bins of size $\Delta t$ event counts $M_t$ with instantaneous rate
+\begin{equation}
+    r(t) = \lambda \nu^{z(t)}
+\end{equation}
+Thus, if we write $t = k\Delta t$, we have
+\begin{equation}
+    M_k \sim \text{Pois}\left(\lambda \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right)
+\end{equation}
+Now, we would like to calculate the expectation of the log of this evidence under the variational posterior, for which we need
+\begin{align}
+    \mathbb{E}_q[\log p(M, z)] &= \mathbb{E}_q[\log p(M|z)] + \mathbb{E}_q[p(z)] \\
+    &= \sum_k \left(M_k \mathbb{E}_q \left[ \log \int_{(k - 1)\Delta t}^{k\Delta t} \lambda \nu^{z(t)} dt \right] \right. \\
+    &- \left.\lambda \mathbb{E}_q\left[ \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right]\right)
+    + \mathbb{E}_q[p(z)]
+\end{align}
+Now assume for the moment we have the marginal distribution at each time: $\zeta(t) = \mathbb{E}_q[z(t)]$. Then
+\begin{align}
+    % \mathbb{E}_q \left[ \log \int_{(k - 1)\Delta t}^{k\Delta t} \lambda \nu^{z(t)} dt \right] &= \Delta t \log \lambda \left( (1 - \zeta(t)) + \zeta(t) \log \nu \right) \\
+    \mathbb{E}_q\left[ \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right] &=  (1 - \tilde{\zeta}_k) + \tilde{\zeta}_k \nu
+\end{align}
+where
+\begin{equation}
+    \tilde{\zeta_k} \equiv \int_{(k - 1)\Delta t}^{k\Delta t} \zeta(t) dt
+\end{equation}
+
+\end{document}
