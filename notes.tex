@@ -43,11 +43,11 @@ Now, we would like to calculate the expectation of the log of this evidence unde
 Now assume for the moment we have the marginal distribution at each time: $\zeta(t) = \mathbb{E}_q[z(t)]$. Then
 \begin{align}
     % \mathbb{E}_q \left[ \log \int_{(k - 1)\Delta t}^{k\Delta t} \lambda \nu^{z(t)} dt \right] &= \Delta t \log \lambda \left( (1 - \zeta(t)) + \zeta(t) \log \nu \right) \\
-    \mathbb{E}_q\left[ \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right] &=  (1 - \tilde{\zeta}_k) + \tilde{\zeta}_k \nu
+    \sum_k \mathbb{E}_q\left[ \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right] &= \int \mathbb{E}_q \left[\nu^{z(t)}\right] dt = (1 - Z) + Z\nu
 \end{align}
 where
 \begin{equation}
-    \tilde{\zeta_k} \equiv \int_{(k - 1)\Delta t}^{k\Delta t} \zeta(t) dt
+    Z \equiv \int \zeta(t) dt
 \end{equation}
 
 \end{document}
