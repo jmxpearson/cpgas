@@ -12,58 +12,68 @@ We would like to perform rapid inference for discrete latent variables in long t
 However, in many cases where semi-Markov models would naturally be applied, transitions are sparse, and posteriors for the state variables approximately alternate between periods of high posterior certainty punctuated by uncertain transition regions of disparate length scales.
 
 \section{Posterior Approximation}
-For the case of variational inference over binary latent variables $z(t)$, we will switch from a representation in terms of states to a representation in terms of changepoints $c_j$. That is, for a given index $j$ representing a transition $0 \rightarrow 1$, we will have $z(t < c_j) = 0$ and $z(t \ge c_j) = 1$. Thus, $z(t)$ and $c_j$ are equivalent descriptions of the model, linked deterministically, and $\mathcal{H}[q(z)] = \mathcal{H}[q(c)]$, where $\mathcal{H}$ is the entropy of the distribution.
+For the case of variational inference over binary latent variables $z(t)$, we will switch from a representation in terms of states to a representation in terms of changepoints $c_k$. That is, for a given index $k$ representing a transition $0 \rightarrow 1$, we will have $z(t < c_k) = 0$ and $z(t \ge c_k) = 1$. Thus, $z(t)$ and $c_k$ are equivalent descriptions of the model, linked deterministically, and $\mathcal{H}[q(z)] = \mathcal{H}[q(c)]$, where $\mathcal{H}$ is the entropy of the distribution.
 
 As a first approximation, then, we will use a mean field approximation for the changepoint locations
 \begin{equation}
-    q(c) = \prod_{j = 1}^N \mathcal{N}(\mu_j, \sigma^2_j)
+    q(c) = \prod_{k = 1}^K \mathcal{N}(\mu_k, \sigma^2_k)
 \end{equation}
 for which we can easily calculate
 \begin{equation}
-    \mathcal{H}[q(c)] = \frac{N}{2}(\log 2\pi + 1) + \sum_j \log \sigma_j
+    \mathcal{H}[q(c)] = \frac{K}{2}(\log 2\pi + 1) + \sum_k \log \sigma_k
 \end{equation}
-Clearly, entropy scales with the number of changepoints, and the uncertainty of the changepoint locations. Note also that we have assumed a fixed number of changepoints, $N$, which, like $\mu$ and $\sigma$ should be thought of as a variational parameter to be optimized.\footnote{Of course, with variational inference, which maximizes the sum of the expected log evidence and the entropy, both terms should benefit from $N$ larger. Thus, constraining $N$ will rely on the prior over changepoints, which should also appropriately scale with $N$.}
+Clearly, entropy scales with the number of changepoints, and the uncertainty of the changepoint locations. Note also that we have assumed a fixed number of changepoints, $K$, which, like $\mu$ and $\sigma$ should be thought of as a variational parameter to be optimized.\footnote{Of course, with variational inference, which maximizes the sum of the expected log evidence and the entropy, both terms should benefit from $K$ larger. Thus, constraining $K$ will rely on the prior over changepoints, which should also appropriately scale with $K$.}
 
 \section{Example: Poisson firing}
-Here, we consider the example of a Poisson process driven by such a binary latent state. That is, we observe in successive time bins of size $\Delta t$ event counts $M_t$ with instantaneous rate
+Here, we consider the example of a Poisson process driven by such a binary latent state. That is, we observe in successive time bins of size $\Delta t$ event counts $N_t$ with instantaneous rate
 \begin{equation}
     r(t) = \lambda \nu^{z(t)}
 \end{equation}
 Thus, if we write $t = k\Delta t$, we have
 \begin{equation}
-    M_k \sim \text{Pois}\left(\lambda \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right)
+    N_k \sim \text{Pois}\left(\lambda \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right)
 \end{equation}
 Now, we would like to calculate the expectation of the log of this evidence under the variational posterior, for which we need
 \begin{align}
-    \mathbb{E}_q[\log p(M, z)] &= \mathbb{E}_q[\log p(M|z)] + \mathbb{E}_q[p(z)] \\
-    &= \sum_k \left(M_k \mathbb{E}_q \left[ \log \int_{(k - 1)\Delta t}^{k\Delta t} \lambda \nu^{z(t)} dt \right] \right. \\
+    \mathbb{E}_q[\log p(N, z)] &= \mathbb{E}_q[\log p(N|z)] + \mathbb{E}_q[p(z)] \\
+    &= \sum_k \left(N_k \mathbb{E}_q \left[ \log \int_{(k - 1)\Delta t}^{k\Delta t} \lambda \nu^{z(t)} dt \right] \right. \\
     &- \left.\lambda \mathbb{E}_q\left[ \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right]\right)
     + \mathbb{E}_q[p(z)]
 \end{align}
 Now assume for the moment we have the marginal distribution at each time: $\zeta(t) = \mathbb{E}_q[z(t)]$. Then
 \begin{align}
-    % \mathbb{E}_q \left[ \log \int_{(k - 1)\Delta t}^{k\Delta t} \lambda \nu^{z(t)} dt \right] &= \Delta t \log \lambda \left( (1 - \zeta(t)) + \zeta(t) \log \nu \right) \\
     \sum_k \mathbb{E}_q\left[ \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right] &= \int \mathbb{E}_q \left[\nu^{z(t)}\right] dt = (1 - Z) + Z\nu
 \end{align}
 where
 \begin{equation}
     Z \equiv \int \zeta(t) dt
 \end{equation}
-The expectation of the log integral is easy to compute if the change point is on either side of the interval in question. If we let $t_k \equiv k \Delta t$, then if the nearest changepoint $c_j \notin [t_{k -1}, t_k)$ the value of the integral is 
+The expectation of the log integral is easy to compute if the change point is on either side of the interval in question. If we let $t_k \equiv k \Delta t$, then if the nearest changepoint $c_k \notin [t_{k -1}, t_k)$ the value of the integral is
 \begin{equation}
-    \int_{t_{k - 1}}^{t_k} \nu^{z(t)} = \nu^{z_k}(\Delta t) 
+    \int_{t_{k - 1}}^{t_k} \nu^{z(t)} = \nu^{z_k}(\Delta t)
 \end{equation}
 where $z_k$ is the value of the state in that bin. Thus
 \begin{align}
     \sum_k M_k \mathbb{E}_q \left[
     \log \int_{t_{k - 1}}^{t_k} \lambda \nu^{z(t)}
-    \right] 
+    \right]
     &\approx \sum_k M_k \mathbb{E}_q \left[z_k \log (\lambda\nu) \right] \Delta t = \left[\int \rho(t) \zeta(t) dt \right] \log (\lambda \nu)
 \end{align}
 That is, we are averaging the expected value of $z$, $\zeta$, against the instantaneous event rate of the process
 \begin{equation}
     \rho(t) = \sum_i \delta(t - t_i)
 \end{equation}
-with $i$ indexing events.
+with $i$ indexing events. Note that the approximation above is exact when the changepoints are located at the bin boundaries, since $z(t)$ is then constant within each bin.\footnote{I suspect, however, that the last expression is exact even without this assumption.} However, this requires us to use a discrete approximation to $p(c)$. We will return to this below.
+
+With these results in hand, we can then calculate the variational obkective
+\begin{align}
+    \mathcal{L} &= \mathbb{E}_q [\log p(M, z)] + \mathcal{H}[q(z)] \\
+    &= M (\log \lambda + \log \nu) - \lambda [(1 - Z) + Z\nu] + \mathbb{E}_q[p(c)] \\
+    &+ \frac{K}{2}\log(2\pi e) + \sum_k \log \sigma_k
+\end{align}
+where we have defined
+\begin{equation}
+    M \equiv \int \rho(t) \zeta(t) dt
+\end{equation}
 
 \end{document}
