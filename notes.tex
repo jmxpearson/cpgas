@@ -16,6 +16,7 @@ For the case of variational inference over binary latent variables $z(t)$, we wi
 
 As a first approximation, then, we will use a mean field approximation for the changepoint locations
 \begin{equation}
+\label{qc}
     q(c) = \prod_{k = 1}^K \mathcal{N}(\mu_k, \sigma^2_k)
 \end{equation}
 for which we can easily calculate
@@ -75,5 +76,31 @@ where we have defined
 \begin{equation}
     M \equiv \int \rho(t) \zeta(t) dt
 \end{equation}
+and replaced the prior on $z$ with the prior on $c$, since the two are equivalent. Finally, we need to use the ansatz (\ref{qc}) to calculate
+\begin{equation}
+    \zeta(t) = \mathbb{E}_q[z(t)] = \sum_k Q_k \Phi\left(\frac{t - \mu_k}{\sigma_k} \right)
+\end{equation}
+For the binary case, we have, without loss of generality, $Q_k = (-1)^k$, and we further assume that the changepoints are sparse enough that only the closest pair of changepoints to a given time contribute meaningfully to the sum. We can then easily calculate
+\begin{align}
+    \frac{\partial \zeta}{\partial \mu_k} &= -\frac{Q_k}{\sigma_k}\phi\left( \frac{t - \mu_k}{\sigma_k}\right) \\
+    \frac{\partial \zeta}{\partial \sigma_k} &= -\frac{t - \mu_k}{\sigma_k^2} Q_k\phi\left( \frac{t - \mu_k}{\sigma_k}\right)
+\end{align}
+with $\phi(x)$ the standard normal density. As a result
+\begin{align}
+    \frac{\partial Z}{\partial \mu_k} &= \int \frac{\partial \zeta}{\partial \mu_k} dt = -Q_k \\
+    \frac{\partial Z}{\partial \sigma_k} &= \int \frac{\partial \zeta}{\partial \sigma_k} dt = 0
+\end{align}
+These results are intuitive: $Z$ increases as we move the changepoint to the left (for a $0 \rightarrow 1$ transition with $Q = 1$), and the width of the transition region is immaterial when integrated over all time. For the observations, we have
+\begin{align}
+    \frac{\partial M}{\partial \mu_k} &= \int \rho(t) \frac{\partial \zeta}{\partial \mu_k} dt = -\frac{Q_k}{\sigma_k}\sum_i \phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \\
+    \frac{\partial M}{\partial \sigma_k} &= \int \rho(t) \frac{\partial \zeta}{\partial \sigma_k} dt = Q_k\sum_i \frac{t_i - \mu_k}{\sigma_k}\phi\left( \frac{t_i - \mu_k}{\sigma_k}\right)
+\end{align}
+Therefore, in the case that the prior on changepoints, $p(c)$ is flat, we have the gradients
+\begin{align}
+    \frac{\partial \mathcal{L}}{\partial \mu_k} &= -\frac{Q_k}{\sigma_k}\sum_i \phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log (\lambda \nu)
+    - \lambda (\nu - 1) Q_k \\
+    \frac{\partial \mathcal{L}}{\partial \sigma_k} &=
+    Q_k\sum_i \frac{t_i - \mu_k}{\sigma_k}\phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log(\lambda \nu) + \frac{1}{\sigma_k}
+\end{align}
 
 \end{document}
