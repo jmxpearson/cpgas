@@ -56,9 +56,9 @@ The expectation of the log integral is easy to compute if the change point is on
 where $z_k$ is the value of the state in that bin. Thus
 \begin{align}
     \sum_k M_k \mathbb{E}_q \left[
-    \log \int_{t_{k - 1}}^{t_k} \lambda \nu^{z(t)}
+    \log \int_{t_{k - 1}}^{t_k} \nu^{z(t)}
     \right]
-    &\approx \sum_k M_k \mathbb{E}_q \left[z_k \log (\lambda\nu) \right] \Delta t = \left[\int \rho(t) \zeta(t) dt \right] \log (\lambda \nu)
+    &\approx \sum_k M_k \mathbb{E}_q \left[z_k \log \nu \right] \Delta t = \left[\int \rho(t) \zeta(t) dt \right] \log \nu
 \end{align}
 That is, we are averaging the expected value of $z$, $\zeta$, against the instantaneous event rate of the process
 \begin{equation}
@@ -69,13 +69,14 @@ with $i$ indexing events. Note that the approximation above is exact when the ch
 With these results in hand, we can then calculate the variational obkective
 \begin{align}
     \mathcal{L} &= \mathbb{E}_q [\log p(M, z)] + \mathcal{H}[q(z)] \\
-    &= M (\log \lambda + \log \nu) - \lambda [(1 - Z) + Z\nu] + \mathbb{E}_q[p(c)] \\
+    &= M \log \lambda + \overline{M} \log \nu - \lambda [(1 - Z) + Z\nu] + \mathbb{E}_q[p(c)] \\
     &+ \frac{K}{2}\log(2\pi e) + \sum_k \log \sigma_k
 \end{align}
 where we have defined
-\begin{equation}
-    M \equiv \int \rho(t) \zeta(t) dt
-\end{equation}
+\begin{align}
+    M &\equiv \int \rho(t) dt & 
+    \overline{M} &\equiv \int \rho(t) \zeta(t) dt
+\end{align}
 and replaced the prior on $z$ with the prior on $c$, since the two are equivalent. Finally, we need to use the ansatz (\ref{qc}) to calculate
 \begin{equation}
     \zeta(t) = \mathbb{E}_q[z(t)] = \sum_k Q_k \Phi\left(\frac{t - \mu_k}{\sigma_k} \right)
@@ -92,15 +93,15 @@ with $\phi(x)$ the standard normal density. As a result
 \end{align}
 These results are intuitive: $Z$ increases as we move the changepoint to the left (for a $0 \rightarrow 1$ transition with $Q = 1$), and the width of the transition region is immaterial when integrated over all time. For the observations, we have
 \begin{align}
-    \frac{\partial M}{\partial \mu_k} &= \int \rho(t) \frac{\partial \zeta}{\partial \mu_k} dt = -\frac{Q_k}{\sigma_k}\sum_i \phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \\
-    \frac{\partial M}{\partial \sigma_k} &= \int \rho(t) \frac{\partial \zeta}{\partial \sigma_k} dt = Q_k\sum_i \frac{t_i - \mu_k}{\sigma_k}\phi\left( \frac{t_i - \mu_k}{\sigma_k}\right)
+    \frac{\partial \overline{M}}{\partial \mu_k} &= \int \rho(t) \frac{\partial \zeta}{\partial \mu_k} dt = -\frac{Q_k}{\sigma_k}\sum_i \phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \\
+    \frac{\partial \overline{M}}{\partial \sigma_k} &= \int \rho(t) \frac{\partial \zeta}{\partial \sigma_k} dt = Q_k\sum_i \frac{t_i - \mu_k}{\sigma_k}\phi\left( \frac{t_i - \mu_k}{\sigma_k}\right)
 \end{align}
 Therefore, in the case that the prior on changepoints, $p(c)$ is flat, we have the gradients
 \begin{align}
-    \frac{\partial \mathcal{L}}{\partial \mu_k} &= -\frac{Q_k}{\sigma_k}\sum_i \phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log (\lambda \nu)
+    \frac{\partial \mathcal{L}}{\partial \mu_k} &= -\frac{Q_k}{\sigma_k}\sum_i \phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log \nu
     - \lambda (\nu - 1) Q_k \\
     \frac{\partial \mathcal{L}}{\partial \sigma_k} &=
-    Q_k\sum_i \frac{t_i - \mu_k}{\sigma_k}\phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log(\lambda \nu) + \frac{1}{\sigma_k}
+    Q_k\sum_i \frac{t_i - \mu_k}{\sigma_k}\phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log \nu + \frac{1}{\sigma_k}
 \end{align}
 
 \end{document}
