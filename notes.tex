@@ -23,7 +23,7 @@ for which we can easily calculate
 \begin{equation}
     \mathcal{H}[q(c)] = \frac{K}{2}(\log 2\pi + 1) + \sum_k \log \sigma_k
 \end{equation}
-Clearly, entropy scales with the number of changepoints, and the uncertainty of the changepoint locations. Note also that we have assumed a fixed number of changepoints, $K$, which, like $\mu$ and $\sigma$ should be thought of as a variational parameter to be optimized.\footnote{Of course, with variational inference, which maximizes the sum of the expected log evidence and the entropy, both terms should benefit from $K$ larger. Thus, constraining $K$ will rely on the prior over changepoints, which should also appropriately scale with $K$.}
+Clearly, entropy scales with the number of changepoints and the uncertainty of the changepoint locations. Note also that we have assumed a fixed number of changepoints, $K$, which, like $\mu$ and $\sigma$ should be thought of as a variational parameter to be optimized.\footnote{Of course, with variational inference, which maximizes the sum of the expected log evidence and the entropy, both terms should benefit from $K$ larger. Thus, constraining $K$ will rely on the prior over changepoints, which should also appropriately scale with $K$.}
 
 \section{Example: Poisson firing}
 Here, we consider the example of a Poisson process driven by such a binary latent state. That is, we observe in successive time bins of size $\Delta t$ event counts $N_t$ with instantaneous rate
@@ -66,7 +66,7 @@ That is, we are averaging the expected value of $z$, $\zeta$, against the instan
 \end{equation}
 with $i$ indexing events. Note that the approximation above is exact when the changepoints are located at the bin boundaries, since $z(t)$ is then constant within each bin.\footnote{I suspect, however, that the last expression is exact even without this assumption.} However, this requires us to use a discrete approximation to $p(c)$. We will return to this below.
 
-With these results in hand, we can then calculate the variational obkective
+With these results in hand, we can then calculate the variational objective
 \begin{align}
     \mathcal{L} &= \mathbb{E}_q [\log p(M, z)] + \mathcal{H}[q(z)] \\
     &= M (\log \lambda + \log \nu) - \lambda [(1 - Z) + Z\nu] + \mathbb{E}_q[p(c)] \\
@@ -98,7 +98,7 @@ These results are intuitive: $Z$ increases as we move the changepoint to the lef
 Therefore, in the case that the prior on changepoints, $p(c)$ is flat, we have the gradients
 \begin{align}
     \frac{\partial \mathcal{L}}{\partial \mu_k} &= -\frac{Q_k}{\sigma_k}\sum_i \phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log (\lambda \nu)
-    - \lambda (\nu - 1) Q_k \\
+    + \lambda (\nu - 1) Q_k \\
     \frac{\partial \mathcal{L}}{\partial \sigma_k} &=
     Q_k\sum_i \frac{t_i - \mu_k}{\sigma_k}\phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log(\lambda \nu) + \frac{1}{\sigma_k}
 \end{align}
