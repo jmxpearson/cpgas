@@ -116,8 +116,8 @@ Alternately, we can rewrite this maximization objective as minimization objectiv
     \mathcal{L}' &= \mathcal{C}(\ell) + K \Delta \\
     \mathcal{C}(\ell) &=
     \begin{cases}
-        -M_\ell \log \lambda + \lambda T - p(\ell|0) & z_\ell = 0 \\
-        -M_\ell \log \lambda\nu + \lambda\nu T - p(\ell|1) & z_\ell = 1
+        -M_\ell \log \lambda + \lambda \ell - p(\ell|0) & z_\ell = 0 \\
+        -M_\ell \log \lambda\nu + \lambda\nu \ell - p(\ell|1) & z_\ell = 1
     \end{cases}
 \end{align}
 where $\ell$ denotes the partition, $z_\ell$ the partition label, $M_\ell$ the number of events inside the partition, and $p(\ell|z_\ell)$ the prior over partition sizes. Furthermore, we have assumed a fixed penalty for each changepoint, $\Delta = \log \sqrt{2\pi \sigma^2_\mathrm{min}}$.
