@@ -69,7 +69,7 @@ with $i$ indexing events. Note that the approximation above is exact when the ch
 With these results in hand, we can then calculate the variational objective
 \begin{align}
     \mathcal{L} &= \mathbb{E}_q [\log p(M, z)] + \mathcal{H}[q(z)] \\
-    &= M \log \lambda + \overline{M} \log \nu - \lambda [(1 - Z) + Z\nu] + \mathbb{E}_q[p(c)] \\
+    &= M \log \lambda + \overline{M} \log \nu - \lambda [(T - Z) + Z\nu] + \mathbb{E}_q[p(c)] \\
     &+ \frac{K}{2}\log(2\pi e) + \sum_k \log \sigma_k
 \end{align}
 where we have defined
@@ -104,4 +104,28 @@ Therefore, in the case that the prior on changepoints, $p(c)$ is flat, we have t
     Q_k\sum_i \frac{t_i - \mu_k}{\sigma_k}\phi\left( \frac{t_i - \mu_k}{\sigma_k}\right) \log \nu + \frac{1}{\sigma_k}
 \end{align}
 
+\section{MAP approach}
+As a first pass, we can also consider a maximum \emph{a posteriori} approach in which we only look for the (highest posterior probability) locations of changepoints. In this case, we simply replace $z(t)$ with either 0 or 1, giving
+\begin{align}
+    \mathcal{L} &= M \log \lambda + M_1 \log \nu - \lambda T [1 - f_1 + f_1 \nu] + \mathbb{E}_q[p(c)] + \frac{K}{2} \log (2\pi e\sigma^2_{\mathrm{min}})
+\end{align}
+with $M$ the total number of events $M_1$ number of events that happen in state 1, and $f_1 = T_1 / T$ the fraction of total time $T$ spent in state 1. Here, we have not entirely eliminated the uncertainty $\sigma$, but have replaced it with $\sigma_{\mathrm{min}}$, a minimum width that is perhaps smaller than the measurement time resolution, so that $\log \sigma_{\mathrm{min}}$ can be treated as a large negative constant. As a result, when attempting to maximize $\mathcal{L}$, there is a penalty for increasing $K$, in addition to whatever prior penalty is imposed by $p(c)$.
+
+Alternately, we can rewrite this maximization objective as minimization objective equal to a sum over cost functions for each partition plus a penalty on large partition numbers:
+\begin{align}
+    \mathcal{L}' &= \mathcal{C}(\ell) + K \Delta \\
+    \mathcal{C}(\ell) &=
+    \begin{cases}
+        -M_\ell \log \lambda + \lambda T - p(\ell|0) & z_\ell = 0 \\
+        -M_\ell \log \lambda\nu + \lambda\nu T - p(\ell|1) & z_\ell = 1
+    \end{cases}
+\end{align}
+where $\ell$ denotes the partition, $z_\ell$ the partition label, $M_\ell$ the number of events inside the partition, and $p(\ell|z_\ell)$ the prior over partition sizes. Furthermore, we have assumed a fixed penalty for each changepoint, $\Delta = \log \sqrt{2\pi \sigma^2_\mathrm{min}}$.
+
+Unfortunately, this cost function does not (naively) allow for optimizations such as PELT (Killick et al., 2012), which require that adding a changepoint always decrease the cost, so that effective pruning becomes possible. In fact, there are two key differences:
+\begin{itemize}
+    \item Because we have only two possible states (the same would be true for any fixed, finite number), changepoints must enter in pairs to preserve boundary conditions. That is, when looking at a region with $z = 1$, the correct operation to attempt is inserting \emph{two} changepoints inside it, i.e., inserting a region of $z = 0$. Boundary conditions are thus more complicated, and search has to range over two endpoints, not one.
+
+    \item It is usually safe to assume that the prior over state durations, $p(\ell|z)$, is unimodal, but it is certainly not monotonic in $\ell$, which adds additional complexity to the optimization problem.
+\end{itemize}
 \end{document}
