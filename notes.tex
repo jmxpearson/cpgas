@@ -36,10 +36,10 @@ Thus, if we write $t = k\Delta t$, we have
 \end{equation}
 Now, we would like to calculate the expectation of the log of this evidence under the variational posterior, for which we need
 \begin{align}
-    \mathbb{E}_q[\log p(N, z)] &= \mathbb{E}_q[\log p(N|z)] + \mathbb{E}_q[p(z)] \\
+    \mathbb{E}_q[\log p(N, z)] &= \mathbb{E}_q[\log p(N|z)] + \mathbb{E}_q[\log p(z)] \\
     &= \sum_k \left(N_k \mathbb{E}_q \left[ \log \int_{(k - 1)\Delta t}^{k\Delta t} \lambda \nu^{z(t)} dt \right] \right. \\
     &- \left.\lambda \mathbb{E}_q\left[ \int_{(k - 1)\Delta t}^{k\Delta t} \nu^{z(t)} dt\right]\right)
-    + \mathbb{E}_q[p(z)]
+    + \mathbb{E}_q[\log p(z)]
 \end{align}
 Now assume for the moment we have the marginal distribution at each time: $\zeta(t) = \mathbb{E}_q[z(t)]$. Then
 \begin{align}
@@ -69,7 +69,7 @@ with $i$ indexing events. Note that the approximation above is exact when the ch
 With these results in hand, we can then calculate the variational objective
 \begin{align}
     \mathcal{L} &= \mathbb{E}_q [\log p(M, z)] + \mathcal{H}[q(z)] \\
-    &= M \log \lambda + \overline{M} \log \nu - \lambda [(T - Z) + Z\nu] + \mathbb{E}_q[p(c)] \\
+    &= M \log \lambda + \overline{M} \log \nu - \lambda [(T - Z) + Z\nu] + \mathbb{E}_q[\log p(c)] \\
     &+ \frac{K}{2}\log(2\pi e) + \sum_k \log \sigma_k
 \end{align}
 where we have defined
@@ -107,7 +107,7 @@ Therefore, in the case that the prior on changepoints, $p(c)$ is flat, we have t
 \section{MAP approach}
 As a first pass, we can also consider a maximum \emph{a posteriori} approach in which we only look for the (highest posterior probability) locations of changepoints. In this case, we simply replace $z(t)$ with either 0 or 1, giving
 \begin{align}
-    \mathcal{L} &= M \log \lambda + M_1 \log \nu - \lambda T [1 - f_1 + f_1 \nu] + \mathbb{E}_q[p(c)] + \frac{K}{2} \log (2\pi e\sigma^2_{\mathrm{min}})
+    \mathcal{L} &= M \log \lambda + M_1 \log \nu - \lambda T [1 - f_1 + f_1 \nu] + \mathbb{E}_q[\log p(c)] + \frac{K}{2} \log (2\pi e\sigma^2_{\mathrm{min}})
 \end{align}
 with $M$ the total number of events $M_1$ number of events that happen in state 1, and $f_1 = T_1 / T$ the fraction of total time $T$ spent in state 1. Here, we have not entirely eliminated the uncertainty $\sigma$, but have replaced it with $\sigma_{\mathrm{min}}$, a minimum width that is perhaps smaller than the measurement time resolution, so that $\log \sigma_{\mathrm{min}}$ can be treated as a large negative constant. As a result, when attempting to maximize $\mathcal{L}$, there is a penalty for increasing $K$, in addition to whatever prior penalty is imposed by $p(c)$.
 
@@ -120,7 +120,7 @@ Alternately, we can rewrite this maximization objective as minimization objectiv
         -M_\ell \log \lambda\nu + \lambda\nu \ell - p(\ell|1) & z_\ell = 1
     \end{cases}
 \end{align}
-where $\ell$ denotes the partition, $z_\ell$ the partition label, $M_\ell$ the number of events inside the partition, and $p(\ell|z_\ell)$ the prior over partition sizes. Furthermore, we have assumed a fixed penalty for each changepoint, $\Delta = \log \sqrt{2\pi \sigma^2_\mathrm{min}}$.
+where $\ell$ denotes the partition, $z_\ell$ the partition label, $M_\ell$ the number of events inside the partition, and $p(\ell|z_\ell)$ the prior over partition sizes. Furthermore, we have assumed a fixed penalty for each changepoint, $\Delta = -\frac{1}{2}\log 2\pi \sigma^2_\mathrm{min}$.
 
 Unfortunately, this cost function does not (naively) allow for optimizations such as PELT (Killick et al., 2012), which require that adding a changepoint always decrease the cost, so that effective pruning becomes possible. In fact, there are two key differences:
 \begin{itemize}
