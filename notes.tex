@@ -128,4 +128,64 @@ Unfortunately, this cost function does not (naively) allow for optimizations suc
 
     \item It is usually safe to assume that the prior over state durations, $p(\ell|z)$, is unimodal, but it is certainly not monotonic in $\ell$, which adds additional complexity to the optimization problem.
 \end{itemize}
+
+\section{Linear time approach}
+Here, we relax our formulation of the problem to allow for an approach that computes a segmentation in time complexity $\mathcal{O}(T)$. As we show below, our approach falls under the requirements of the pruned exact linear time (PELT) algorithm (Killick, Fearnhead, Eckley, JASA, 2012).
+
+First, consider the same setup as above:
+\begin{align}
+    N(t) &\sim \mathrm{Pois}(r(t)) \\
+    r(t) &= \lambda \nu^{z(t)}
+\end{align}
+We would again like to maximize the evidence lower bound. For the moment, we will assume (improper) uniform priors on the lengths of the runs, such that $p(\ell|z) \propto 1$. As a result, we can then write the objective function as 
+\begin{equation}
+    \mathbb{E}_q \left[\log p(N|z) \right] + \mathcal{H}[q(z)]
+\end{equation}
+Now, however, we would like to choose a posterior approximation $q(z)$ consisting of the set of binary, piecewise-constant functions with fixed changepoints. That is, we will approximate the posterior over $z(t)$ as a sequence of Beta posteriors, with the changepoints taken as \emph{variational parameters}. As a result, we do not need posteriors over the changepoint locations, but each segment will have a full posterior over $z$.
+
+Given this set of assumptions, we can then write the objective function as a sum over segments:
+\begin{equation}
+    \mathcal{L} = \sum_k \left[ 
+    \left(\frac{\alpha_k}{\alpha_k + \beta_k} \right) N_k \log \nu - \lambda (\nu - 1) \ell_k + H(\alpha_k, \beta_k)
+    \right]    
+\end{equation}
+with 
+\begin{align}
+    H(\alpha, \beta) &= \log B(\alpha, \beta) - (\alpha - 1)\psi(\alpha)
+    - (\beta - 1)\psi(\beta) + (\alpha + \beta - 2) \psi(\alpha + \beta)
+\end{align}
+with $H \le 0$ the differential entropy of the beta distribution. This objective clearly has the form of a sum over ``maximum likelihoods" for each segment, as well as an entropy ``penalty'' term. As shown in the PELT paper, the necessary condition for the pruning to work is a guarantee on the benefit of adding an additional changepoint:
+\begin{equation}
+    \label{pelt_condition}
+    \mathcal{C}_1 + \mathcal{C}_2 + K \le \mathcal{C}_{1 \cup 2}
+\end{equation}
+with $K \ge 0$. With this guarantee, it then becomes possible to prune the potential changepoint locations in the recursive dynamic program, achieving linear running time.
+
+\subsection*{Theorem:} The cost function 
+\begin{equation}
+    \mathcal{C} = -\frac{\alpha}{\alpha + \beta} N \log \nu + \lambda (\nu - 1)
+\end{equation}
+satisfies (\ref{pelt_condition}) with $K = 0$.
+
+\emph{Proof}: Write $\zeta = \alpha / (\alpha + \beta)$ and consider splitting a section of data in two. We wish to show
+\begin{equation}
+    \mathcal{C}(N_1, \ell_1) + \mathcal{C}(N_2, \ell_2) \le \mathcal{C}(N, \ell)
+\end{equation}
+with $N = N_1 + N_2$, $\ell = \ell_1 + \ell_2$. We can rewrite this condition as
+\begin{equation}
+    -(\zeta_1 N_1 + \zeta_2 N_2) \log \nu + (\zeta_1 \ell_1 + \zeta_2 \ell_2) \lambda (\nu - 1)
+    \le
+    -\zeta N \log \nu + \zeta \ell \lambda (\nu - 1)
+\end{equation}
+In this equation, we consider $\lambda$, $\nu$, $N$, $\ell$, $N_i$, $\ell_i$, and $\zeta$ as given, and wish to show that there always exist $\zeta_i$ such that the equation is satisfied. To do so, we note that a sufficient condition for this is that
+\begin{align}
+    \zeta_1 \eta + \zeta_2 (1 - \eta) &< \zeta \\
+    \zeta_1 \tau + \zeta_2 (1 - \tau) &> \zeta
+\end{align}
+with $\eta \equiv N_1/N$ and $\tau \equiv \ell_1/\ell$. 
+
+This system has an intuitive geometric interpretation: The left hand side of each inequality defines a point that lies between $\zeta_1$ and $\zeta_2$ on the real line. Call these points $p_\eta$ and $p_\tau$. In each case, a given parameter, $\eta$ or $\tau$, controls how close this point is proportionally to either end. Moreover, the first of these points must lie to the left of $\zeta$, while the second must lie to the right. However, since we are free to choose $\zeta_1$ and $\zeta_2$ anywhere in $(0, 1)$, it is clear that for any $\eta, \tau$ we can enclose $\zeta$ between $p_\eta$ and $p_\tau$. $\blacksquare$
+
+Thus, we can use a variant of PELT with $K = 0$ to segment the data. Unfortunately, in our case, the changepoint cost $-H(\alpha, \beta)$ is non-constant, requiring a more involved optimization at each step.\footnote{Note that the conclusion $K=0$ is intuitive on the grounds that $H \le 0$.} Nonetheless, pruning reduces the size of the search space and results in linear time guarantees.
+
 \end{document}
