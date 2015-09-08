@@ -141,20 +141,19 @@ We would again like to maximize the evidence lower bound. For the moment, we wil
 \begin{equation}
     \mathbb{E}_q \left[\log p(N|z) \right] + \mathcal{H}[q(z)]
 \end{equation}
-Now, however, we would like to choose a posterior approximation $q(z)$ consisting of the set of binary, piecewise-constant functions with fixed changepoints. That is, we will approximate the posterior over $z(t)$ as a sequence of Beta posteriors, with the changepoints taken as \emph{variational parameters}. As a result, we do not need posteriors over the changepoint locations, but each segment will have a full posterior over $z$.
+Now, however, we would like to choose a posterior approximation $q(z)$ consisting of the set of binary, piecewise-constant functions with fixed changepoints. That is, we will approximate the posterior over $z(t)$ as a sequence of Bernoulli posteriors, with the changepoints taken as \emph{variational parameters}. As a result, we do not need posteriors over the changepoint locations, but each segment will have a full posterior over $z$.
 
 Given this set of assumptions, we can then write the objective function as a sum over segments:
 \begin{equation}
     \mathcal{L} = \sum_k \left[ 
-    \left(\frac{\alpha_k}{\alpha_k + \beta_k} \right) N_k \log \nu - \lambda (\nu - 1) \ell_k + H(\alpha_k, \beta_k)
+    \pi_k N_k \log \nu - \pi_k \lambda (\nu - 1) \ell_k + H(\pi_k)
     \right]    
 \end{equation}
 with 
 \begin{align}
-    H(\alpha, \beta) &= \log B(\alpha, \beta) - (\alpha - 1)\psi(\alpha)
-    - (\beta - 1)\psi(\beta) + (\alpha + \beta - 2) \psi(\alpha + \beta)
+    H(\pi) = -\pi \log \pi - (1 - \pi) \log (1 - \pi)
 \end{align}
-with $H \le 0$ the differential entropy of the beta distribution. This objective clearly has the form of a sum over ``maximum likelihoods" for each segment, as well as an entropy ``penalty'' term. As shown in the PELT paper, the necessary condition for the pruning to work is a guarantee on the benefit of adding an additional changepoint:
+with $H \le 0$ the differential entropy of the Bernoulli distribution. This objective clearly has the form of a sum over ``maximum likelihoods" for each segment, as well as an entropy ``penalty'' term. As shown in the PELT paper, the necessary condition for the pruning to work is a guarantee on the benefit of adding an additional changepoint:
 \begin{equation}
     \label{pelt_condition}
     \mathcal{C}_1 + \mathcal{C}_2 + K \le \mathcal{C}_{1 \cup 2}
@@ -163,29 +162,54 @@ with $K \ge 0$. With this guarantee, it then becomes possible to prune the poten
 
 \subsection*{Theorem:} The cost function 
 \begin{equation}
-    \mathcal{C} = -\frac{\alpha}{\alpha + \beta} N \log \nu + \lambda (\nu - 1)
+    \mathcal{C} = -\pi [N \log \nu + \lambda (\nu - 1)\ell]
 \end{equation}
 satisfies (\ref{pelt_condition}) with $K = 0$.
 
-\emph{Proof}: Write $\zeta = \alpha / (\alpha + \beta)$ and consider splitting a section of data in two. We wish to show
+\emph{Proof}: Consider splitting a section of data in two. We wish to show
 \begin{equation}
     \mathcal{C}(N_1, \ell_1) + \mathcal{C}(N_2, \ell_2) \le \mathcal{C}(N, \ell)
 \end{equation}
 with $N = N_1 + N_2$, $\ell = \ell_1 + \ell_2$. We can rewrite this condition as
 \begin{equation}
-    -(\zeta_1 N_1 + \zeta_2 N_2) \log \nu + (\zeta_1 \ell_1 + \zeta_2 \ell_2) \lambda (\nu - 1)
+    -(\pi_1 N_1 + \pi_2 N_2) \log \nu + (\pi_1 \ell_1 + \pi_2 \ell_2) \lambda (\nu - 1)
     \le
-    -\zeta N \log \nu + \zeta \ell \lambda (\nu - 1)
+    -\pi N \log \nu + \pi \ell \lambda (\nu - 1)
 \end{equation}
-In this equation, we consider $\lambda$, $\nu$, $N$, $\ell$, $N_i$, $\ell_i$, and $\zeta$ as given, and wish to show that there always exist $\zeta_i$ such that the equation is satisfied. To do so, we note that a sufficient condition for this is that
+In this equation, we consider $\lambda$, $\nu$, $N$, $\ell$, $N_i$, $\ell_i$, and $\pi$ as given, and wish to show that there always exist $\pi_i$ such that the equation is satisfied. To do so, we note that a sufficient condition for this is that
 \begin{align}
-    \zeta_1 \eta + \zeta_2 (1 - \eta) &< \zeta \\
-    \zeta_1 \tau + \zeta_2 (1 - \tau) &> \zeta
+    \pi_1 \eta + \pi_2 (1 - \eta) &< \pi \\
+    \pi_1 \tau + \pi_2 (1 - \tau) &> \pi
 \end{align}
 with $\eta \equiv N_1/N$ and $\tau \equiv \ell_1/\ell$. 
 
-This system has an intuitive geometric interpretation: The left hand side of each inequality defines a point that lies between $\zeta_1$ and $\zeta_2$ on the real line. Call these points $p_\eta$ and $p_\tau$. In each case, a given parameter, $\eta$ or $\tau$, controls how close this point is proportionally to either end. Moreover, the first of these points must lie to the left of $\zeta$, while the second must lie to the right. However, since we are free to choose $\zeta_1$ and $\zeta_2$ anywhere in $(0, 1)$, it is clear that for any $\eta, \tau$ we can enclose $\zeta$ between $p_\eta$ and $p_\tau$. $\blacksquare$
+This system has an intuitive geometric interpretation: The left hand side of each inequality defines a point that lies between $\pi_1$ and $\pi_2$ on the real line. Call these points $p_\eta$ and $p_\tau$. In each case, a given parameter, $\eta$ or $\tau$, controls how close this point is proportionally to either end. Moreover, the first of these points must lie to the left of $\pi$, while the second must lie to the right. However, since we are free to choose $\pi_1$ and $\pi_2$ anywhere in $(0, 1)$, it is clear that for any $\eta, \tau$ we can enclose $\pi$ between $p_\eta$ and $p_\tau$. $\blacksquare$
 
-Thus, we can use a variant of PELT with $K = 0$ to segment the data. Unfortunately, in our case, the changepoint cost $-H(\alpha, \beta)$ is non-constant, requiring a more involved optimization at each step.\footnote{Note that the conclusion $K=0$ is intuitive on the grounds that $H \le 0$.} Nonetheless, pruning reduces the size of the search space and results in linear time guarantees.
+Thus, we can use a variant of PELT with $K = 0$ to segment the data. Unfortunately, in our case, the changepoint cost $-H(\pi)$ is non-constant, requiring a more involved optimization at each step. However, we can easily derive the optimal value of $\pi$ in each segment:
+\begin{align}
+    \frac{\partial \mathcal{L}}{\partial \pi} &= N\log \nu - \lambda (\nu - 1)\ell - \log \frac{\pi}{1-\pi} = 0 \\
+    \Rightarrow \quad \pi &= \frac{1}{1 + e^{-\kappa}} 
+\end{align}
+with $\kappa \equiv N\log \nu - \lambda (\nu - 1)\ell$. This then gives a maximal objective/minimal cost value for a segment defined by $N, \ell$ of
+\begin{equation}
+    \mathcal{L}_* = \kappa + \log (1 + e^{-\kappa})
+\end{equation}
+
+As a result, at each step of the PELT algorithm, the calculation
+\begin{equation}
+    F(\tau^*) = \min_{\tau \in R_{\tau^*}} [F(\tau) - \mathcal{L}_*(\tau + 1:\tau^*)]
+\end{equation}
+is a single straightforward function evaluation at each $\tau$. Likewise the minimal cost function, needed in pruning, is given by
+\begin{equation}
+    \mathcal{C}_* = - \frac{\kappa}{1 + e^{-\kappa}}
+\end{equation}
+which implies that the feasible set for the subsequent iteration is given by
+\begin{equation}
+    R_{\tau^* + 1} = \lbrace \tau^* \cap 
+    \lbrace 
+    \tau \in R_{\tau^*} \vert F(\tau) + \mathcal{C}_*(\tau + 1:\tau^*) < 
+    F(\tau^*)
+    \rbrace \rbrace
+\end{equation}
 
 \end{document}
