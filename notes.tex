@@ -217,5 +217,19 @@ is a single straightforward function evaluation at each $\tau$, which implies th
     \rbrace \rbrace
 \end{equation}
 
+\subsection{Penalty term}
+The total penalty for observing a sequence of changepoints in the model above is given by the negative log likelihood of observing the entire sequence:
+\begin{equation}
+    \mathcal{P}_\mathrm{tot} = -\sum_k \log p(\ell_k|z_k)
+\end{equation}
+However, we might wish to consider an alternative formulation, in which the prior is over the number of changepoints, not the length of each sequence. In this case, for $m$ changepoints, we have
+\begin{equation}
+    \mathcal{P}_\mathrm{tot} = -\log p(m)
+\end{equation}
+Now, if we assume a simple model in which the number of changepoints is exponentially distributed, we have
+\begin{equation}
+    \mathcal{P} = m\beta
+\end{equation}
+for some ``rate'' $\beta$. In this case, we arrive back at the setup in Killick et al., who consider a constant per-changepoint cost $\beta$.\footnote{Note that in this case, the number of changepoints is not assumed to increase in time unless $\beta \propto T^{-1}$. We might additionally consider the more complex setup of Killick et al.'s Section 3.2, which covers concave penalties, including exponential family forms like the Poisson.}
 
 \end{document}
