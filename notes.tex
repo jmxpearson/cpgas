@@ -231,4 +231,16 @@ Now, if we assume a simple model in which the number of changepoints is exponent
 \end{equation}
 for some ``rate'' $\beta$. In this case, we arrive back at the setup in Killick et al., who consider a constant per-changepoint cost $\beta$.\footnote{Note that in this case, the number of changepoints is not assumed to increase in time unless $\beta \propto T^{-1}$. We might additionally consider the more complex setup of Killick et al.'s Section 3.2, which covers concave penalties, including exponential family forms like the Poisson.}
 
+In addition, we may note the following interpretation of $\beta$ in the case that the cost $\mathcal{C}$ of a segment is equal to the negative log likelihood of the data in that segment:
+
+Consider a case in which we are just indifferent between inserting a changepoint. In that case,
+\begin{equation}
+    \mathcal{C}(N_1, \ell_1) + \mathcal{C}(N_2, \ell_2) + \beta = \mathcal{C}(N, \ell)
+\end{equation}
+However, writing the cost as $\mathcal{C} = -\log \mathcal{L}$ gives
+\begin{equation}
+    \beta = \log \frac{\mathcal{L}(N_1, \ell_1)\mathcal{L}(N_2, \ell_2)}{\mathcal{L}(N, \ell)}
+\end{equation}
+That is, $\beta$ is the value of the log likelihood ratio of the two models at which we are indifferent to splitting. Thus, for example a value $\beta = 2$ requires that the data be twice as likely under the model with the changepoint as under the model without.
+
 \end{document}
