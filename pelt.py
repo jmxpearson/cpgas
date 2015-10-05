@@ -4,24 +4,34 @@ pelt.py: a simple implementation of the PELT algorithm.
 
 import numpy as np
 import scipy.stats as stats
+from scipy.special import gammaln
+from numba import jit
 
 # Define some helper functions
+@jit(nopython=True)
 def grab_ss(counts, t1, t2):
     """
     Given start and end times, get sufficient statistics for data in the
     closed interval [t1, t2] from counts.
     """
     this_counts = counts[t1:(t2 + 1)]
-    return sum(this_counts), len(this_counts)
+    return np.sum(this_counts), len(this_counts)
 
+@jit("float64(int64[:], int64, int64, float64, float64)")
 def base_LL(counts, t1, t2, lam, dt):
     """
     For the closed interval [t1, t2], calculate the log likelihood of the
     data in counts.
     """
     c = counts[t1:(t2 + 1)]
-    return np.sum(stats.poisson.logpmf(c, lam * dt))
+    rate = lam * dt
+    logpdfsum = 0
+    for cnt in c:
+        logpdfsum += -rate + cnt * np.log(rate) - gammaln(cnt + 1)
 
+    return logpdfsum
+
+@jit("float64(int64, float64, float64, float64, float64)", nopython=True)
 def kappa(N, ell, lam, nu, dt):
     """
     Calculate the differential log likelihood for assigning count data to
@@ -29,6 +39,7 @@ def kappa(N, ell, lam, nu, dt):
     """
     return N * np.log(nu) - lam * dt * (nu - 1) * ell
 
+@jit("float64(int64[:], int64, int64, float64, float64, float64)")
 def C(counts, t1, t2, lam, nu, dt):
     """
     Calculate the cost function for data in the closed interval [t1, t2].
@@ -37,6 +48,7 @@ def C(counts, t1, t2, lam, nu, dt):
     kap = kappa(N, ell, lam, nu, dt)
     return -(base_LL(counts, t1, t2, lam, dt) + kap + np.logaddexp(0, -kap))
 
+@jit
 def find_changepoints(counts, lam, nu, dt, beta):
     """
     Given the data in counts, baseline event rate lam, state 1 event rate
@@ -68,8 +80,11 @@ def find_changepoints(counts, lam, nu, dt, beta):
         F[tau] = mincost
 
         CP.add(new_tau)
-        R = ({r for r in R if F[r] + C(counts, r + 1, tau, lam, nu, dt) +
-            K < F[tau]})
+        R = set({})
+        for r in R:
+            if F[r] + C(counts, r + 1, tau, lam, nu, dt) + K < F[tau]:
+                R.add(r)
+
         R.add(tau)
 
     # extract changepoints
